@@ -1,8 +1,8 @@
 import request from '@/utils/request'
-
+import { getToken } from '@/utils/auth'
 export function login(data) {
   return request({
-    url: '/user/login',
+    url: '/api/login',
     method: 'post',
     data
   })
@@ -10,16 +10,21 @@ export function login(data) {
 
 export function getInfo(token) {
   return request({
-    url: '/user/info',
+    url: `/api/userinfo/${getToken()}`,
     method: 'get',
-    params: { token }
+    data: {
+      token
+    }
   })
 }
 
-export function logout() {
+export function logout(token) {
   return request({
-    url: '/user/logout',
-    method: 'post'
+    url: `api/user/logout/${getToken()}`,
+    method: 'post',
+    data: {
+      token
+    }
   })
 }
 

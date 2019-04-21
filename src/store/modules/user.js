@@ -3,6 +3,8 @@ import { getToken, setToken, removeToken } from '@/utils/auth'
 import router, { resetRouter } from '@/router'
 
 const state = {
+	userid: '',
+	userno:'',
   token: getToken(),
   name: '',
   avatar: '',
@@ -11,6 +13,12 @@ const state = {
 }
 
 const mutations = {
+  SET_USERID: (state, userid) => {
+    state.userid = userid
+  },
+  SET_USERNO: (state, userno) => {
+    state.userno = userno
+  },
   SET_TOKEN: (state, token) => {
     state.token = token
   },
@@ -30,10 +38,12 @@ const mutations = {
 
 const actions = {
   // user login
-  login({ commit }, userInfo) {
-    const { username, password } = userInfo
+  LoginByUsername({ commit }, userInfo) {
+    const { userName, userPasswd } = userInfo
     return new Promise((resolve, reject) => {
-      login({ username: username.trim(), password: password }).then(response => {
+      loginByUsername({ userName: userName.trim(), userPasswd: userPasswd }).then(response => {
+				debugger
+				alert("login")
         const { data } = response
         commit('SET_TOKEN', data.token)
         setToken(data.token)
@@ -45,36 +55,34 @@ const actions = {
   },
 
   // get user info
-  getInfo({ commit, state }) {
-    return new Promise((resolve, reject) => {
-      getInfo(state.token).then(response => {
-        const { data } = response
-
-        if (!data) {
-          reject('Verification failed, please Login again.')
-        }
-
-        const { roles, name, avatar, introduction } = data
-
-        // roles must be a non-empty array
-        if (!roles || roles.length <= 0) {
-          reject('getInfo: roles must be a non-null array!')
-        }
-
-        commit('SET_ROLES', roles)
-        commit('SET_NAME', name)
-        commit('SET_AVATAR', avatar)
-        commit('SET_INTRODUCTION', introduction)
-        resolve(data)
-      }).catch(error => {
-        reject(error)
+  getUserInfo({ commit, state }) {
+			return new Promise((resolve, reject) => {
+				debugger
+        getInfo(state.token).then(response => {
+					debugger
+          const data = response.result
+          if (data.roles && data.roles.length > 0) { // 验证返回的roles是否是一个非空数组
+            commit('SET_ROLES', data.roles)
+          } else {
+            reject('getInfo: roles must be a non-null array !')
+          }
+					commit('SET_USERID', data.userid)
+					commit('SET_USERNO', data.userno)
+          commit('SET_NAME', data.name)
+          commit('SET_AVATAR', data.avatar)
+          resolve(data)
+        }).catch(error => {
+					debugger
+          reject(error)
+        })
       })
-    })
   },
 
   // user logout
   logout({ commit, state }) {
+		debugger
     return new Promise((resolve, reject) => {
+			debugger
       logout(state.token).then(() => {
         commit('SET_TOKEN', '')
         commit('SET_ROLES', [])
@@ -89,7 +97,9 @@ const actions = {
 
   // remove token
   resetToken({ commit }) {
+		debugger
     return new Promise(resolve => {
+			debugger
       commit('SET_TOKEN', '')
       commit('SET_ROLES', [])
       removeToken()

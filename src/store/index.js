@@ -9,8 +9,20 @@ import user from './modules/user'
 import getters from './getters'
 
 Vue.use(Vuex)
+// debugger
+// const store = new Vuex.Store({
+//   modules: {
+//     app,
+//     errorLog,
+//     permission,
+//     tagsView,
+//     settings,
+//     user
+//   },
+//   getters
+// })
 
-const store = new Vuex.Store({
+export default new Vuex.Store({
   modules: {
     app,
     errorLog,
@@ -21,5 +33,3 @@ const store = new Vuex.Store({
   },
   getters
 })
-
-export default store

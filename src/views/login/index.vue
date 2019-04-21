@@ -9,31 +9,31 @@
         <lang-select class="set-language" />
       </div>
 
-      <el-form-item prop="username">
+      <el-form-item prop="userName">
         <span class="svg-container">
           <svg-icon icon-class="user" />
         </span>
         <el-input
-          ref="username"
-          v-model="loginForm.username"
+          ref="userName"
+          v-model="loginForm.userName"
           :placeholder="$t('login.username')"
-          name="username"
+          name="userName"
           type="text"
           auto-complete="on"
         />
       </el-form-item>
 
-      <el-form-item prop="password">
+      <el-form-item prop="userPasswd">
         <span class="svg-container">
           <svg-icon icon-class="password" />
         </span>
         <el-input
           :key="passwordType"
-          ref="password"
-          v-model="loginForm.password"
+          ref="userPasswd"
+          v-model="loginForm.userPasswd"
           :type="passwordType"
           :placeholder="$t('login.password')"
-          name="password"
+          name="userPasswd"
           auto-complete="on"
           @keyup.enter.native="handleLogin"
         />
@@ -78,16 +78,18 @@
 import { validUsername } from '@/utils/validate'
 import LangSelect from '@/components/LangSelect'
 import SocialSign from './socialsignin'
+import { loginByUsername, getRoles } from "@/api/login";
+import { setToken,setRoles } from "@/utils/auth";
 
 export default {
   name: 'Login',
   components: { LangSelect, SocialSign },
   data() {
     const validateUsername = (rule, value, callback) => {
-      if (!validUsername(value)) {
-        callback(new Error('Please enter the correct user name'))
-      } else {
-        callback()
+      if(!value){
+         callback(new Error("请输入用户名"));
+      }else{
+         callback();
       }
     }
     const validatePassword = (rule, value, callback) => {
@@ -99,12 +101,12 @@ export default {
     }
     return {
       loginForm: {
-        username: 'admin',
-        password: '111111'
+        userName: '880092',
+        userPasswd: '133345'
       },
       loginRules: {
-        username: [{ required: true, trigger: 'blur', validator: validateUsername }],
-        password: [{ required: true, trigger: 'blur', validator: validatePassword }]
+        userName: [{ required: true, trigger: 'blur', validator: validateUsername }],
+        userPasswd: [{ required: true, trigger: 'blur', validator: validatePassword }]
       },
       passwordType: 'password',
       loading: false,
@@ -124,10 +126,10 @@ export default {
     // window.addEventListener('storage', this.afterQRScan)
   },
   mounted() {
-    if (this.loginForm.username === '') {
-      this.$refs.username.focus()
-    } else if (this.loginForm.password === '') {
-      this.$refs.password.focus()
+    if (this.loginForm.userName === '') {
+      this.$refs.userName.focus()
+    } else if (this.loginForm.userPasswd === '') {
+      this.$refs.userPasswd.focus()
     }
   },
   destroyed() {
@@ -141,27 +143,46 @@ export default {
         this.passwordType = 'password'
       }
       this.$nextTick(() => {
-        this.$refs.password.focus()
+        this.$refs.userPasswd.focus()
       })
     },
     handleLogin() {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
-          this.loading = true
-          this.$store.dispatch('user/login', this.loginForm)
-            .then(() => {
-              this.$router.push({ path: this.redirect || '/' })
-              this.loading = false
-            })
-            .catch(() => {
-              this.loading = false
-            })
+					this.login();
         } else {
           console.log('error submit!!')
           return false
         }
       })
-    }
+    },
+		login() {
+		  this.loading = true;
+		  loginByUsername(this.loginForm).then(res => {
+				debugger
+				this.loading = false;
+				if (res.code == "1") {
+					setToken(res.result.loginToken);
+					this.getRoles(res.result.userId);
+					// this.$router.push({ path: "/" });
+		    } else {
+		      this.loading = false;
+		      this.$message.error(res.msg);
+		    }
+		  }).catch(err=>{
+				this.loading = false;
+			});
+		},
+		getRoles(userId) {
+			this.loading = true;
+		    getRoles(userId).then(res => {
+			debugger;
+		    this.loading = false;
+		    setRoles(res.result || '');
+		    this.$router.push({ path: "/" });
+		});
+	  }
+	}
     // afterQRScan() {
     //   if (e.key === 'x-admin-oauth-code') {
     //     const code = getQueryObject(e.newValue)
@@ -180,7 +201,6 @@ export default {
     //     }
     //   }
     // }
-  }
 }
 </script>
 
